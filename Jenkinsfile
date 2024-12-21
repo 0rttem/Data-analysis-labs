@@ -1,11 +1,22 @@
 pipeline {
     agent any
+    tools {
+        maven 'Maven'
+    }
+
     stages {
-        stage('Build') {
+        stage('Git Checkout') {
             steps {
-                def scannerHome = tool 'sq_scanner'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/0rttem/Data-analysis-labs']])
+                echo 'Git Checkout Completed'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
                 withSonarQubeEnv('sq1') {
-                    sh "${scannerHome}/bin/sonar-scanner"
+                    bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=ProjectNameSonar -Dsonar.projectName='ProjectNameSonar' -Dsonar.host.url=http://localhost:9000''' //port 9000 is default for sonar
+                    echo 'SonarQube Analysis Completed'
                 }
             }
         }
